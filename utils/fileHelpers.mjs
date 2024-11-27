@@ -3,7 +3,7 @@ import { MAP_DIRECTORY } from "../constants.mjs";
 
 
 function readMapFile(fileName) {
-    let data = fs.readFileSync(`${MAP_DIRECTORY}${fileName}`, { encoding: "utf8" });
+    let data = fs.readFileSync(`${MAP_DIRECTORY}${fileName}`.trim(), { encoding: "utf8" });
     data = data.split("\n");
     data = data.reduce((prev, curr) => {
         prev.push(curr.split(""));
