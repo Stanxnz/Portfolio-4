@@ -5,6 +5,7 @@ import * as CONST from "./constants.mjs";
 
 
 const startingLevel = CONST.START_LEVEL_ID;
+const secondLevel = CONST.NEXT_LEVEL_ID;
 const levels = loadLevelListings();
 
 function loadLevelListings(source = CONST.LEVEL_LISTING_FILE) {
@@ -41,13 +42,15 @@ let playerPos = {
 
 const EMPTY = " ";
 const HERO = "H";
-const LOOT = "$"
+const LOOT = "$";
+const DOOR1 = "2";
 
 let direction = -1;
 
 let items = [];
 
 const THINGS = [LOOT, EMPTY];
+const DOORS = [DOOR1, ];
 
 let eventText = "";
 
@@ -111,6 +114,50 @@ class Labyrinth {
             // Update the HERO
             playerPos.row = tRow;
             playerPos.col = tcol;
+
+            // Make the draw function draw.
+            isDirty = true;
+        } else {
+            direction *= -1;
+        }
+
+        tRow = playerPos.row + (1 * drow);
+        tcol = playerPos.col + (1 * dcol);
+
+        if (DOORS.includes(level[tRow][tcol])) { // Is there anything where Hero is moving to
+            playerPos.row=null
+            playerPos.col=null
+            let currentItem = level[tRow][tcol];
+            if (currentItem == DOOR1) {
+                 levelData = readMapFile(levels[secondLevel]);
+                 level = levelData;
+                 tRow=null
+                 tcol=null
+                 if (playerPos.row == null) {
+                    for (let row = 0; row < level.length; row++) {
+                        for (let col = 0; col < level[row].length; col++) {
+                            if (level[row][col] == "H") {
+                                playerPos.row = row;
+                                playerPos.col = col;
+                                break;
+                            }
+                        }
+                        if (playerPos.row != undefined) {
+                            break;
+                        }
+                    }
+                }
+                 
+            }
+
+            drow = 0;
+            dcol = 0;
+            tRow = playerPos.row + (1 * drow);
+            tcol = playerPos.col + (1 * dcol);
+           
+            // Move the HERO
+            level[playerPos.row][playerPos.col] = EMPTY;
+            level[tRow][tcol] = HERO;
 
             // Make the draw function draw.
             isDirty = true;
