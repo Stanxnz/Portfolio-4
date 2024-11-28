@@ -15,7 +15,7 @@ function loadLevelListings(source = CONST.LEVEL_LISTING_FILE) {
         let keyValue = item.split(":");
         if (keyValue.length >= 2) {
             let key = keyValue[0];
-            let value = keyValue[1].trim(); // Ensure no trailing spaces
+            let value = keyValue[1].trim();
             levels[key] = value;
         }
     }
@@ -60,7 +60,7 @@ const playerStats = {
 class Labyrinth {
     update() {
         if (playerPos.row == null) {
-            this.updatePlayerPosition(); // Ensure player position is set
+            this.updatePlayerPosition(); 
         }
 
         let drow = 0;
@@ -88,14 +88,14 @@ class Labyrinth {
             playerPos.row = tRow;
             playerPos.col = tcol;
             isDirty = true;
-        } else if (level[tRow][tcol] === "2") { // Explicitly handle DOOR1
+        } else if (level[tRow][tcol] === "2") { 
             console.log("Transition through Door 2");
-            levelData = readMapFile(levels[secondLevel]); // Move to secondLevel
+            levelData = readMapFile(levels[secondLevel]); 
             level = levelData;
             this.updatePlayerPosition();
-        } else if (level[tRow][tcol] === "3") { // Explicitly handle DOOR2
+        } else if (level[tRow][tcol] === "3") { 
             console.log("Transition through Door 3");
-            levelData = readMapFile(levels[thirdLevel]); // Move to thirdLevel
+            levelData = readMapFile(levels[thirdLevel]); 
             level = levelData;
             this.updatePlayerPosition();
         }

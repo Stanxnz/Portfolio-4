@@ -22,10 +22,10 @@ function update() {
 
     if (isBlocked) { return; }
     isBlocked = true;
-    //#region core game loop
+    
     state.update();
     state.draw();
-    //#endregion
+
     isBlocked = false;
 }
 

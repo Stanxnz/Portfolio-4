@@ -56,6 +56,4 @@ class Text {
 
 };
 
-
-// Usage: new Text(".....");
 export default Text
