@@ -80,7 +80,7 @@ class Labyrinth {
         teleportPositions = [];
         for (let r = 0; r < level.length; r++) {
             for (let c = 0; c < level[r].length; c++) {
-                if (level[r][c] === "♨︎") {
+                if (level[r][c] === CONST.TELEPORT_SYMBOL) {
                     teleportPositions.push({ row: r, col: c });
                 }
             }
@@ -97,6 +97,7 @@ teleportPlayer() {
         level[target.row][target.col] = HERO;
         playerPos.row = target.row;
         playerPos.col = target.col;
+        isDirty = true;
         }
     }
 
@@ -104,7 +105,7 @@ initializeNPCs() {
         npcPositions = [];
         for (let r = 0; r < level.length; r++) {
             for (let c = 0; c < level[r].length; c++) {
-                if (level[r][c] === "x") {
+                if (level[r][c] === "X") {
                     npcPositions.push({
                         row: r,
                         col: c,
@@ -119,8 +120,8 @@ initializeNPCs() {
         for (let npc of npcPositions) {
             let oldCol = npc.col;
             let newCol = npc.oscillator();
-            level[npc.row][oldCol] = " ";
-            level[npc.row][newCol] = "x";
+            level[npc.row][oldCol] = EMPTY;
+            level[npc.row][newCol] = "X";
             npc.col = newCol;
         }
     }
@@ -157,7 +158,7 @@ initializeNPCs() {
         let tRow = playerPos.row + drow;
         let tCol = playerPos.col + dcol;
 
-        if (level[tRow][tCol] === "♨︎") {
+        if (level[tRow][tCol] === CONST.TELEPORT_SYMBOL) {
             this.teleportPlayer();
             isDirty = true;
         } else if (level[tRow][tCol] === "2") {

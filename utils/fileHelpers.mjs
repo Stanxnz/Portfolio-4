@@ -9,6 +9,7 @@ function readMapFile(fileName) {
         prev.push(curr.split(""));
         return prev;
     }, []);
+
     return data;
 }
 
