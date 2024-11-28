@@ -38,6 +38,8 @@ const HERO = "H";
 const LOOT = "$";
 const DOOR1 = "2";
 const DOOR2 = "3";
+const TELEPORTER = "♨︎";
+const TELEPORT_SYMBOL = TELEPORTER;
 
 const THINGS = [LOOT, EMPTY];
 const DOORS = [DOOR1, DOOR2];
@@ -80,7 +82,7 @@ class Labyrinth {
         teleportPositions = [];
         for (let r = 0; r < level.length; r++) {
             for (let c = 0; c < level[r].length; c++) {
-                if (level[r][c] === CONST.TELEPORT_SYMBOL) {
+                if (level[r][c] === TELEPORT_SYMBOL) {
                     teleportPositions.push({ row: r, col: c });
                 }
             }
@@ -158,7 +160,7 @@ initializeNPCs() {
         let tRow = playerPos.row + drow;
         let tCol = playerPos.col + dcol;
 
-        if (level[tRow][tCol] === CONST.TELEPORT_SYMBOL) {
+        if (level[tRow][tCol] === TELEPORT_SYMBOL) {
             this.teleportPlayer();
             isDirty = true;
         } else if (level[tRow][tCol] === "2") {
