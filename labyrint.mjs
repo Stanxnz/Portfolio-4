@@ -100,6 +100,7 @@ teleportPlayer() {
         playerPos.row = target.row;
         playerPos.col = target.col;
         isDirty = true;
+        } else {
         }
     }
 

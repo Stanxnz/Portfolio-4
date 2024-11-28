@@ -1,16 +1,18 @@
 import fs from "node:fs";
 import { MAP_DIRECTORY } from "../constants.mjs";
+import { TELEPORT_SYMBOL } from "../constants.mjs";
 
+const TELEPORT_VARIANTS = ["♨︎", "\u2668"];
+
+function normalizeMap(levelData){
+    return levelData.map(row => row.map(cell => (TELEPORT_VARIANTS.includes(cell) ? TELEPORT_SYMBOL : cell)));
+}
 
 function readMapFile(fileName) {
     let data = fs.readFileSync(`${MAP_DIRECTORY}${fileName}`.trim(), { encoding: "utf8" });
-    data = data.split("\n");
-    data = data.reduce((prev, curr) => {
-        prev.push(curr.split(""));
-        return prev;
-    }, []);
+    let levelData = data.split("\n").map(row => row.split(""));
 
-    return data;
+    return normalizeMap(levelData);
 }
 
 function readRecordFile(fileName) {
@@ -18,4 +20,4 @@ function readRecordFile(fileName) {
     return data.split("\n");
 }
 
-export { readMapFile, readRecordFile }
+export { readMapFile, readRecordFile };
