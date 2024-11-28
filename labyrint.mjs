@@ -2,6 +2,8 @@ import ANSI from "./utils/ANSI.mjs";
 import KeyBoardManager from "./utils/KeyBoardManager.mjs";
 import { readMapFile, readRecordFile } from "./utils/fileHelpers.mjs";
 import * as CONST from "./constants.mjs";
+import oscillate from "./utils/oscilate.mjs";
+
 
 const startingLevel = CONST.START_LEVEL_ID;
 const secondLevel = CONST.NEXT_LEVEL_ID;
@@ -25,19 +27,11 @@ function loadLevelListings(source = CONST.LEVEL_LISTING_FILE) {
 let levelData = readMapFile(levels[startingLevel]);
 let level = levelData;
 
-let pallet = {
-    "█": ANSI.COLOR.LIGHT_GRAY,
-    "H": ANSI.COLOR.RED,
-    "$": ANSI.COLOR.YELLOW,
-    "B": ANSI.COLOR.GREEN,
-};
-
+let teleportPositions = [];
+let npcPositions = [];
+let visitedLevels = [];
 let isDirty = true;
-
-let playerPos = {
-    row: null,
-    col: null,
-};
+let playerPos = { row: null, col: null };
 
 const EMPTY = " ";
 const HERO = "H";
@@ -52,100 +46,19 @@ let eventText = "";
 
 const HP_MAX = 10;
 
-const playerStats = {
-    hp: 8,
-    chash: 0,
+const playerStats = {  hp: 8, cash: 0 };
+
+let pallet = {
+    "█": ANSI.COLOR.LIGHT_GRAY,
+    "H": ANSI.COLOR.RED,
+    "$": ANSI.COLOR.YELLOW,
+    "B": ANSI.COLOR.GREEN,
 };
 
 class Labyrinth {
-    update() {
-        if (playerPos.row == null) {
-            this.updatePlayerPosition(); 
-        }
-
-        let drow = 0;
-        let dcol = 0;
-
-        if (KeyBoardManager.isUpPressed()) drow = -1;
-        if (KeyBoardManager.isDownPressed()) drow = 1;
-        if (KeyBoardManager.isLeftPressed()) dcol = -1;
-        if (KeyBoardManager.isRightPressed()) dcol = 1;
-
-        let tRow = playerPos.row + drow;
-        let tcol = playerPos.col + dcol;
-
-        if (THINGS.includes(level[tRow][tcol])) {
-            let currentItem = level[tRow][tcol];
-            if (currentItem === LOOT) {
-                let loot = Math.round(Math.random() * 7) + 3;
-                playerStats.chash += loot;
-                eventText = `Player gained ${loot}$`;
-            }
-
-            level[playerPos.row][playerPos.col] = EMPTY;
-            level[tRow][tcol] = HERO;
-
-            playerPos.row = tRow;
-            playerPos.col = tcol;
-            isDirty = true;
-        } else if (level[tRow][tcol] === "2") { 
-            console.log("Transition through Door 2");
-            levelData = readMapFile(levels[secondLevel]); 
-            level = levelData;
-            this.updatePlayerPosition();
-        } else if (level[tRow][tcol] === "3") { 
-            console.log("Transition through Door 3");
-            levelData = readMapFile(levels[thirdLevel]); 
-            level = levelData;
-            this.updatePlayerPosition();
-        }
-    }
-
-    draw() {
-        if (!isDirty) {
-            return;
-        }
-        isDirty = false;
-
-        console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
-
-        let rendering = "";
-
-        rendering += this.renderHud();
-
-        for (let row = 0; row < level.length; row++) {
-            let rowRendering = "";
-            for (let col = 0; col < level[row].length; col++) {
-                let symbol = level[row][col];
-                if (pallet[symbol] != undefined) {
-                    rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
-                } else {
-                    rowRendering += symbol;
-                }
-            }
-            rowRendering += "\n";
-            rendering += rowRendering;
-        }
-
-        console.log(rendering);
-        if (eventText !== "") {
-            console.log(eventText);
-            eventText = "";
-        }
-    }
-
-    renderHud() {
-        let hpBar = `Life:[${ANSI.COLOR.RED + this.pad(playerStats.hp, "♥︎") + ANSI.COLOR_RESET}${ANSI.COLOR.LIGHT_GRAY + this.pad(HP_MAX - playerStats.hp, "♥︎") + ANSI.COLOR_RESET}]`;
-        let cash = `$:${playerStats.chash}`;
-        return `${hpBar} ${cash}\n`;
-    }
-
-    pad(len, text) {
-        let output = "";
-        for (let i = 0; i < len; i++) {
-            output += text;
-        }
-        return output;
+    constructor() {
+        this.initializeTeleports();
+        this.initializeNPCs();
     }
 
     updatePlayerPosition() {
@@ -162,6 +75,151 @@ class Labyrinth {
             }
         }
     }
-}
 
-export default Labyrinth;
+ initializeTeleports() {
+        teleportPositions = [];
+        for (let r = 0; r < level.length; r++) {
+            for (let c = 0; c < level[r].length; c++) {
+                if (level[r][c] === "♨︎") {
+                    teleportPositions.push({ row: r, col: c });
+                }
+            }
+        }
+    }
+
+teleportPlayer() {
+        let currentIndex = teleportPositions.findIndex(pos => pos.row === playerPos.row && pos.col === playerPos.col);
+        if (currentIndex >= 0) {
+        let targetIndex = (currentIndex + 1) %
+        teleportPositions.length;
+        let target = teleportPositions[targetIndex];
+        level[playerPos.row][playerPos.col] = EMPTY;
+        level[target.row][target.col] = HERO;
+        playerPos.row = target.row;
+        playerPos.col = target.col;
+        }
+    }
+
+initializeNPCs() {
+        npcPositions = [];
+        for (let r = 0; r < level.length; r++) {
+            for (let c = 0; c < level[r].length; c++) {
+                if (level[r][c] === "x") {
+                    npcPositions.push({
+                        row: r,
+                        col: c,
+                        oscillator: oscillate(c - 2, c + 2)
+                    });
+                }
+            }
+        }
+    }
+
+    updateNPCs() {
+        for (let npc of npcPositions) {
+            let oldCol = npc.col;
+            let newCol = npc.oscillator();
+            level[npc.row][oldCol] = " ";
+            level[npc.row][newCol] = "x";
+            npc.col = newCol;
+        }
+    }
+    transitionTo(levelId) {
+        visitedLevels.push(level);
+        levelData = readMapFile(levels[levelId]);
+        level = levelData;
+        this.updatePlayerPosition();
+        this.initializeTeleports();
+        this.initializeNPCs();
+    }
+    returnToPreviousLevel() {
+        if (visitedLevels.length > 0) {
+            level = visitedLevels.pop();
+            this.updatePlayerPosition();
+            this.initializeTeleports();
+            this.initializeNPCs();
+        }
+    }
+
+    update() {
+        if (playerPos.row === null) {
+            this.updatePlayerPosition();
+            this.initializeTeleports();
+            this.initializeNPCs();
+        }
+
+        let drow = 0, dcol = 0;
+        if (KeyBoardManager.isUpPressed()) drow = -1;
+        if (KeyBoardManager.isDownPressed()) drow = 1;
+        if (KeyBoardManager.isLeftPressed()) dcol = -1;
+        if (KeyBoardManager.isRightPressed()) dcol = 1;
+
+        let tRow = playerPos.row + drow;
+        let tCol = playerPos.col + dcol;
+
+        if (level[tRow][tCol] === "♨︎") {
+            this.teleportPlayer();
+            isDirty = true;
+        } else if (level[tRow][tCol] === "2") {
+            this.transitionTo(secondLevel);
+            isDirty = true;
+        } else if (level[tRow][tCol] === "3") {
+            this.transitionTo(thirdLevel);
+            isDirty = true;
+        } else if (level[tRow][tCol] === EMPTY || level[tRow][tCol] === LOOT) {
+            if (level[tRow][tCol] === LOOT) {
+                let loot = Math.floor(Math.random() * 10) + 1;
+                playerStats.cash += loot;
+                console.log('You collected ${loot} coins!');
+            }
+            level[playerPos.row][playerPos.col] = EMPTY;
+            level[tRow][tCol] = HERO;
+            playerPos.row = tRow;
+            playerPos.col = tCol;
+            isDirty = true;
+        } else if (level[tRow][tCol] === "B") {
+            this.returnToPreviousLevel();
+            isDirty = true;
+        }
+        this.updateNPCs();
+        isDirty = true;
+    }
+
+    draw() {
+        if (!isDirty)return;
+        isDirty = false;
+
+        console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
+
+        let rendering = this.renderHud();
+
+        for (let row = 0; row < level.length; row++) {
+            let rowRendering = "";
+            for (let col = 0; col < level[row].length; col++) {
+                let symbol = level[row][col];
+                if (pallet[symbol]) {
+                    rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
+                } else {
+                    rowRendering += symbol;
+                }
+            }
+            rendering += rowRendering + "\n";
+        }
+        console.log(rendering);
+    }
+    renderHud() {
+        let hpBar = `HP: [${ANSI.COLOR.RED}${"♥︎".repeat(playerStats.hp)}${ANSI.COLOR.LIGHT_GRAY}${" ".repeat(HP_MAX - playerStats.hp)}${ANSI.COLOR_RESET}]`;
+        let cash = `Cash: $${playerStats.cash}`;
+        return `${hpBar} ${cash}\n`;
+    }  
+    }
+
+    export default Labyrinth;
+
+   
+
+    
+
+    
+
+
