@@ -183,6 +183,9 @@ initializeNPCs() {
         } else if (level[tRow][tCol] === "B") {
             this.returnToPreviousLevel();
             isDirty = true;
+        } else if (level[tRow][tCol] === "E") {
+            console.log("You have reached the end of the labyrinth!")
+            process.exit();
         }
         this.updateNPCs();
         isDirty = true;
