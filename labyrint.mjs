@@ -38,7 +38,7 @@ const HERO = "H";
 const LOOT = "$";
 const DOOR1 = "2";
 const DOOR2 = "3";
-const TELEPORTER = "♨︎";
+const TELEPORTER = "♨";
 const TELEPORT_SYMBOL = TELEPORTER;
 
 const THINGS = [LOOT, EMPTY];
