@@ -90,7 +90,7 @@ class Labyrinth {
     }
 
 teleportPlayer() {
-        let currentIndex = teleportPositions.findIndex(pos => pos.row === playerPos.row && pos.col === playerPos.col);
+        let currentIndex = teleportPositions.findIndex((pos) => pos.row === playerPos.row && pos.col === playerPos.col);
         if (currentIndex >= 0) {
         let targetIndex = (currentIndex + 1) %
         teleportPositions.length;
@@ -100,7 +100,6 @@ teleportPlayer() {
         playerPos.row = target.row;
         playerPos.col = target.col;
         isDirty = true;
-        } else {
         }
     }
 
