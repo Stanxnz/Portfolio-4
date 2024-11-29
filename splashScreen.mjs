@@ -31,7 +31,7 @@ class SplashScreen {
 
 
         for (let i=0; i<=frameIndex; i++){
-            console.log(ANSI.COLOR.YELLOW+lines[i]+ANSI.COLOR_RESET);
+            console.log(ANSI.COLOR.GREEN+lines[i]+ANSI.COLOR_RESET);
         }
 
          frameIndex++;
